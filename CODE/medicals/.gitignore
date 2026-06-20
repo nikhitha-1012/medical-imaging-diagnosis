@@ -1,0 +1,14 @@
+media/
+CODE/medicals/media/
+*.jpg
+*.jpeg
+*.png
+*.rar
+db.sqlite3
+ABSTRACT/
+BASE PAPER/
+DOCUMENTS/
+*.rar
+*.lnk
+__pycache__/
+*.pyc
