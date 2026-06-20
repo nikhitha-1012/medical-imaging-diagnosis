@@ -1,3 +1,4 @@
+
 absl-py==1.4.0
 asgiref==3.6.0
 astunparse==1.6.3
@@ -11,9 +12,8 @@ gast==0.4.0
 google-auth==2.16.1
 google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
-<<<<<<< HEAD
+
 grpcio==1.51.3
-=======
 
 h5py==3.8.0
 idna==3.4
@@ -55,6 +55,5 @@ Werkzeug==2.2.3
 wrapt==1.14.1
 zipp==3.14.0
 
-=======
-gunicorn==21.2.0
 
+gunicorn==21.2.0
