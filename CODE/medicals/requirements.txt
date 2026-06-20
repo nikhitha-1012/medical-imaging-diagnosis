@@ -13,9 +13,7 @@ google-auth==2.16.1
 google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
 
-grpcio==1.48.2git add .
-git commit -m "Fix Render build Python and grpcio issue"
-git push
+grpcio==1.48.2
 
 h5py==3.8.0
 idna==3.4
