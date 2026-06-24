@@ -31,5 +31,3 @@ class UserRegistrationForm(forms.ModelForm):
         model = UserRegistrationModel
         fields = '__all__'
         
-        
-    
