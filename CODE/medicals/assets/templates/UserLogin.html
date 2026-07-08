@@ -1,45 +1,75 @@
-def UserLoginCheck(request):
-    if request.method == "POST":
-        loginid = request.POST.get("loginid")
-        password = request.POST.get("pswd")
+{% extends 'base.html' %}
+{% load static %}
 
-        print("Entered Login ID:", loginid)
-        print("Entered Password:", password)
+{% block title %}User Login{% endblock %}
+{% block user_login %}active{% endblock %}
 
-        print("All users in DB:")
-        for user in UserRegistrationModel.objects.all():
-            print(
-                "LoginID:", user.loginid,
-                "Password:", user.password,
-                "Status:", user.status
-            )
+{% block content %}
+<style>
+    .jumbotron {
+        font-family: "Book Antiqua";
+        background: white;
+        margin-top: 100px;
+    }
 
-        try:
-            check = UserRegistrationModel.objects.get(
-                loginid=loginid,
-                password=password
-            )
+    input[type=text] {
+        padding: 1rem;
+        width: 21rem;
+        
+    }
 
-            print("User Found:", check.loginid)
+    input[type=password] {
+        padding: 1rem;
+        width: 21rem;
+    }
+</style>
 
-            if check.status.lower() == "activated":
-                request.session['id'] = check.id
-                request.session['loginid'] = check.loginid
-                request.session['password'] = check.password
-                request.session['email'] = check.email
-                return render(request, 'users/UserHome.html')
-            else:
-                messages.success(request, "Your account is not activated.")
-                return render(request, "UserLogin.html")
+<div class="jumbotron">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="text-center p-2">User Login</h1> <br>
+                <form action="{% url 'UserLoginCheck' %}" method="POST" class="text-primary" >
+                    {% csrf_token %}
 
-        except UserRegistrationModel.DoesNotExist:
-            print("No matching user found.")
-            messages.success(request, "Invalid Login ID or Password")
-            return render(request, "UserLogin.html")
+                    <center>
+                        <div class="form-group row">
+                            <div class="">
+                                <input type="text" class="form-control" name="loginid" required
+                                    placeholder="Enter Login Id">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="form-group row">
+                            <div class="">
+                                <input type="password" class="form-control" name="pswd" required
+                                    placeholder="Enter password">
+                            </div>
+                        </div>
+                    </center>
 
-        except Exception as e:
-            print("Error:", e)
-            messages.success(request, "Something went wrong")
-            return render(request, "UserLogin.html")
+                    <div class="form-group row">
+                        <div class="col-md-12">
 
-    return render(request, "UserLogin.html") 
+                            <br>
+                            <center>
+                                <input type="submit" class = "btn btn-dark p-2"> &nbsp;
+                                <input type="reset" class = "btn btn-dark p-2">
+                            </center>
+                        </div>
+                    </div>
+
+
+                    <!-- Message -->
+                    {% if messages %}
+                    {% for message in messages %}
+                    <p align="center" class="text-primary"> {{ message }}</p>
+                    {% endfor %}
+                    {% endif %}
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
