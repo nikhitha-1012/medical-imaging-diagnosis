@@ -24,27 +24,32 @@ def UserRegisterActions(request):
 
 def UserLoginCheck(request):
     if request.method == "POST":
-        loginid=request.POST.get("loginid")
-        password=request.POST.get("pswd")
-        print(loginid)
-        print(password)
+        loginid = request.POST.get("loginid")
+        password = request.POST.get("pswd")
+
+        print("Entered Login:", loginid)
+        print("Entered Password:", password)
+
+        users = UserRegistrationModel.objects.all()
+        print("Total Users:", users.count())
+
+        for user in users:
+            print(
+                user.loginid,
+                user.password,
+                user.status
+            )
+
         try:
-            check=UserRegistrationModel.objects.get(loginid=loginid,password=password)
-            status=check.status
-            if status=="activated":
-                request.session['id']=check.id
-                request.session['loginid']=check.loginid
-                request.session['password']=check.password
-                request.session['email']=check.email
-                return render(request,'users/UserHome.html')
-            else:
-                messages.success(request,"your account not activated")
-            return render(request,"UserLogin.html")
+            check = UserRegistrationModel.objects.get(
+                loginid=loginid,
+                password=password
+            )
+
+            print("User Found:", check.loginid)
+
         except Exception as e:
-            print('=======>',e)
-        messages.success(request,'invalid details')
-    return render(request,'UserLogin.html')
-    
+            print(e)
 def UserHome(request):
     return render(request,"users/UserHome.html",{})
 
