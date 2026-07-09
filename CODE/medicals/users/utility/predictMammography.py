@@ -1,103 +1,72 @@
-def start_process(imagepath):
-    import os
-    from django.conf import settings
-    from keras.models import load_model
-    from keras.utils import load_img
-    import numpy as np
-    from PIL import Image
-    
-    img_path = os.path.join(settings.MEDIA_ROOT,imagepath)
-    model_path = os.path.join(settings.MEDIA_ROOT,'mammography_model3.h5')
+import os
+import numpy as np
+from PIL import Image
 
-    
-    def getCropImgs(img, needRotations=False):
-        # img = img.convert('L')
-        z = np.asarray(img, dtype=np.int8)
-        c = []
+from django.conf import settings
+from keras.models import load_model
+from keras.utils import load_img
+
+# -------------------------
+# Load model ONLY ONCE
+# -------------------------
+MODEL_PATH = os.path.join(settings.MEDIA_ROOT, "mammography_model3.h5")
+model = load_model(MODEL_PATH)
+
+
+def start_process(imagepath):
+
+    img_path = os.path.join(settings.MEDIA_ROOT, imagepath)
+
+    def getCropImgs(img):
+        z = np.asarray(img, dtype=np.float32)
+        crops = []
+
         for i in range(3):
             for j in range(4):
-                crop = z[512 * i:512 * (i + 1), 512 * j:512 * (j + 1), :]
+                crop = z[
+                    512 * i:512 * (i + 1),
+                    512 * j:512 * (j + 1),
+                    :
+                ]
+                crops.append(crop)
 
-                c.append(crop)
-                if needRotations:
-                    c.append(np.rot90(np.rot90(crop)))
-        return c
-    
-    
+        return crops
+
     def softmaxToProbs(soft):
-        z_exp = [np.math.exp(i) for i in soft[0]]
-        sum_z_exp = sum(z_exp)
-        return [(i / sum_z_exp) * 100 for i in z_exp]
-        
-    
-    def predict(img, model_path, showImg=True):
-        model = load_model(model_path)
-        # if showImg:
-        # Image.fromarray(np.array(img, np.float16), 'RGB').show()
+        e = np.exp(soft[0])
+        return (e / np.sum(e)) * 100
 
-        x = img
-        if showImg:
-            Image.fromarray(np.array(img, np.float16), 'RGB').show()
-        x = np.expand_dims(x, axis=0)
+    def predict(img):
 
-        softMaxPred = model.predict(x)
-        print("prediction from CNN: " + str(softMaxPred) + "\n")
-        probs = softmaxToProbs(softMaxPred)
+        x = np.expand_dims(img, axis=0)
 
-        # plot_model(model, to_file='Model.png')
-        # SVG(model_to_dot(model).create(prog='dot', format='svg'))
-        maxprob = 0
-        maxI = 0
-        for j in range(len(probs)):
-            # print(str(j) + " : " + str(round(probs[j], 4)))
-            if probs[j] > maxprob:
-                maxprob = probs[j]
-                maxI = j
-        # print(softMaxPred)
-        print("prediction index: " + str(maxI))
-        return maxI, probs
+        pred = model.predict(x, verbose=0)
 
-    
-    def predictImage(img_path=img_path, arrayImg=None, printData=True):
-        crops = []
-        if arrayImg == None:
-            img = load_img(img_path)
-            crops = np.array(getCropImgs(img, needRotations=False), np.float16)
-            crops = np.divide(crops, 255.)
-        Image.fromarray(np.array(crops[0]), "RGB").show()
+        probs = softmaxToProbs(pred)
 
-        classes = []
-        classes.append("Benign")
-        classes.append("InSitu")
-        classes.append("Invasive")
-        classes.append("Normal")
+        return probs
 
-        compProbs = []
-        compProbs.append(0)
-        compProbs.append(0)
-        compProbs.append(0)
-        compProbs.append(0)
+    img = load_img(img_path)
 
-        for i in range(len(crops)):
-            if printData:
-                print("\n\nCrop " + str(i + 1) + " prediction:\n")
+    crops = np.array(getCropImgs(img), dtype=np.float32)
 
-            ___, probs = predict(crops[i], model_path, showImg=False)
+    crops = crops / 255.0
 
-            for j in range(len(classes)):
-                if printData:
-                    print(str(classes[j]) + " : " + str(round(probs[j], 4)) + "%")
-                compProbs[j] += probs[j]
+    classes = [
+        "Benign",
+        "InSitu",
+        "Invasive",
+        "Normal"
+    ]
 
-        if printData:
-            print("\n\nAverage from all crops\n")
+    compProbs = np.zeros(4)
 
-        # for j in range(len(classes)):
-        #     if printData:
-        #         print(str(classes[j]) + " : " + str(round(compProbs[j] / 12, 4)) + "%")
-        prediction = np.argmax(compProbs)
-        prediction = classes[prediction]
-        print(prediction)
-        return prediction
-                
-    return predictImage()
+    for crop in crops:
+
+        probs = predict(crop)
+
+        compProbs += probs
+
+    prediction = classes[np.argmax(compProbs)]
+
+    return prediction
