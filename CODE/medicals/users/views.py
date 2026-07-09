@@ -30,16 +30,6 @@ def UserLoginCheck(request):
         print("Entered Login:", loginid)
         print("Entered Password:", password)
 
-        users = UserRegistrationModel.objects.all()
-        print("Total Users:", users.count())
-
-        for user in users:
-            print(
-                user.loginid,
-                user.password,
-                user.status
-            )
-
         try:
             check = UserRegistrationModel.objects.get(
                 loginid=loginid,
@@ -48,8 +38,23 @@ def UserLoginCheck(request):
 
             print("User Found:", check.loginid)
 
-        except Exception as e:
-            print(e)
+            if check.status == "activated":
+                request.session['id'] = check.id
+                request.session['loginid'] = check.loginid
+                request.session['password'] = check.password
+                request.session['email'] = check.email
+
+                return render(request, "users/UserHome.html")
+
+            else:
+                messages.success(request, "Your account is not activated.")
+                return render(request, "UserLogin.html")
+
+        except UserRegistrationModel.DoesNotExist:
+            messages.success(request, "Invalid Login Details")
+            return render(request, "UserLogin.html")
+
+    return render(request, "UserLogin.html")
 def UserHome(request):
     return render(request,"users/UserHome.html",{})
 
