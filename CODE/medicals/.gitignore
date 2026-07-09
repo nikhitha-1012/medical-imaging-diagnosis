@@ -4,7 +4,7 @@ CODE/medicals/media/
 *.jpeg
 *.png
 *.rar
-db.sqlite3
+
 ABSTRACT/
 BASE PAPER/
 DOCUMENTS/
